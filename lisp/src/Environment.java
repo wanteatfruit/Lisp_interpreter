@@ -9,13 +9,13 @@ public class Environment {
         map=new HashMap();
     }
 
-    public Environment(Environment father,HashMap map){
+    public Environment(Environment father,HashMap<String,String> map){
         this.father=father;
         this.map=map;
     }
 
 
-    static Object getValue(String key,Environment env){
+    Object getValue(String key,Environment env){
         if(env.map.containsKey(key)){
             return env.map.get(key);
         }

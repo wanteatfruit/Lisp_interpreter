@@ -18,6 +18,7 @@ public class treeNode{
     public treeNode(){
         val="";
         nodeList=new ArrayList<>();
+        env=new Environment();
     }
 
 
