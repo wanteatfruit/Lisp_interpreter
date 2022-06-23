@@ -21,5 +21,14 @@ public class treeNode{
         env=new Environment();
     }
 
+    public treeNode(treeNode father){
+        val="";
+        nodeList=new ArrayList<>();
+        //env=father.env;
+        //指向同一个环境还是深复制一个？
+        env=new Environment();
+        env.map.putAll(father.env.map);
+    }
+
 
 }

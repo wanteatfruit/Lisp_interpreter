@@ -74,8 +74,9 @@ public class ConstructTree {
             if(strings[i]==null){
                 continue;
             }
+            //遇到左括号就新建一个节点，父节点为栈顶 新节点放到栈顶
             else if(strings[i].equals("(")){
-                treeNode node=new treeNode();
+                treeNode node=new treeNode(nodeStack.peek());
                 nodeStack.peek().nodeList.add(node);
                 nodeStack.push(node);
             }

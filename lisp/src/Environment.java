@@ -15,7 +15,7 @@ public class Environment {
     }
 
 
-    Object getValue(String key,Environment env){
+    String getValue(String key,Environment env){
         if(env.map.containsKey(key)){
             return env.map.get(key);
         }

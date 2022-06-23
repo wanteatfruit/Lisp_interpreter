@@ -5,11 +5,9 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc =new Scanner(System.in);
         String[] input=new String[10000];
-        ///////改变输入方式？目前只能一行行读取，无记忆性
         int idx = 0;
         while(true) {
-            
-             String s = sc.nextLine();
+            String s = sc.nextLine();
             input[idx]=s;
             idx++;
             if(s.equals("-1")){
@@ -22,11 +20,11 @@ public class Main {
     }
 
     static void compile(String[] args){
+        treeNode root=new treeNode(); //father at the top
         for (int i = 0; i < args.length; i++) {
             if(args[i].equals("c"))
                 break;
             treeNode cal = ConstructTree.construct(args[i]); // build expression tree
-            ////// 当操作数中出现字符时需要从环境中拿（在建树的时候就拿到/evaluate时拿到）惰性求值？
             evaluate(cal.nodeList.get(0));
             System.out.println(cal.nodeList.get(0).val);
         }
@@ -51,8 +49,15 @@ public class Main {
                     String operand=node.nodeList.get(i).val;
                     if(operand.matches(varPattern)){ //get from env
                         /////变量不一定存在于当前的环境中，应当一级一级往上找
-                        long valKey=(long)node.env.getValue(operand, node.env);
-                        val+=valKey;
+                        String searchResult=node.env.getValue(operand, node.env);
+                        if(searchResult.equals("Doesn't exist.")){
+                            System.out.println(searchResult);
+                            break;
+                        }
+                        else{
+                            long valKey = Long.parseLong(searchResult);
+                            val += valKey;
+                        }
                     }
                     else if(operand.matches(numPattern)){
                         val = val + Integer.parseInt(node.nodeList.get(i).val);
