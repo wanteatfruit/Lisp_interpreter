@@ -3,6 +3,7 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        
         Scanner sc =new Scanner(System.in);
         String[] input=new String[10000];
         int idx = 0;
@@ -15,25 +16,37 @@ public class Main {
             }
             if(s.equals("c")){
                 compile(input);
+               
             }
         }
+        sc.close();
     }
-
     static void compile(String[] args){
+        ////// 怎么把环境给到根节点 每次define都需要更新根节点的环境
+        ////// 暂时不考虑函数以及闭包的环境
         treeNode root=new treeNode(); //father at the top
         for (int i = 0; i < args.length; i++) {
             if(args[i].equals("c"))
                 break;
-            treeNode cal = ConstructTree.construct(args[i]); // build expression tree
-            evaluate(cal.nodeList.get(0));
-            System.out.println(cal.nodeList.get(0).val);
+            root.nodeList.add(ConstructTree.construct(args[i])); //返回每行的根节点
+            evaluate(root.nodeList.get(i));
         }
+        for (int i = 0; i < root.nodeList.size(); i++) {
+            treeNode child=root.nodeList.get(i);
+            // evaluate(child);
+            System.out.println(child.val);
+        }
+        // evaluate(root);
+        // System.out.println(root.val);
     }
 
     static void evaluate(treeNode node){
-        //reach the end
         if(node.nodeList.size()==0){
             return ;
+        }
+        if(node.nodeList.size()==1){ 
+            evaluate(node.nodeList.get(0));
+            node.val=node.nodeList.get(0).val;
         }
         //recursion
         for(int i=1;i<node.nodeList.size();i++){
@@ -88,7 +101,7 @@ public class Main {
                 node.val=String.valueOf(val3);
                 break;
             
-            case "define": //(define key value) 相当于把变量名和变量值看作键值对，放到当前节点的环境
+            case "define": 
                 String key=node.nodeList.get(1).val; //variable name(key)
                 String val4=node.nodeList.get(2).val;//varibale value
                 node.env.map.put(key,val4);
