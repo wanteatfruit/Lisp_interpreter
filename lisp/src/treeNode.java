@@ -22,12 +22,20 @@ public class treeNode{
     }
 
     public treeNode(treeNode father){
-        val="";
-        nodeList=new ArrayList<>();
-        //env=father.env;
-        //指向同一个环境还是深复制一个？
-        env=new Environment();
-        env.map.putAll(father.env.map);
+        if(father==null){
+            val = "";
+            nodeList = new ArrayList<>();
+            env = new Environment();
+        }
+        else{
+            val = "";
+            nodeList = new ArrayList<>();
+            // env=father.env;
+            // 指向同一个环境还是深复制一个？
+            env = new Environment();
+            env.map.putAll(father.env.map);
+        }
+
     }
 
 

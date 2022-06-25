@@ -16,12 +16,12 @@ public class ConstructTree {
      *  
      */
 
-    public static treeNode construct(String s){
+    public static treeNode construct(String s, Environment outerEnv){
         String [] strings=new String[s.length()];
         Stack<treeNode> nodeStack=new Stack<>();
         treeNode root=new treeNode();
 
-        nodeStack.push(root);
+       // nodeStack.push(root);
 
         //use regex expressions to match strings
         String operand="^[A-Za-z0-9]+$";  
@@ -76,8 +76,16 @@ public class ConstructTree {
             }
             //遇到左括号就新建一个节点，父节点为栈顶 新节点放到栈顶
             else if(strings[i].equals("(")){
-                treeNode node=new treeNode(nodeStack.peek());
-                nodeStack.peek().nodeList.add(node);
+                treeNode node;
+                if(nodeStack.isEmpty()){
+                    node=new treeNode();
+                    root=node;
+                    node.env=outerEnv;
+                }
+                else{
+                    node=new treeNode(nodeStack.peek());
+                    nodeStack.peek().nodeList.add(node);
+                }
                 nodeStack.push(node);
             }
             //操作符
