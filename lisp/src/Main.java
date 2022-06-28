@@ -54,13 +54,20 @@ public class Main {
             return ;
         }
         //divide
-        for(int i=1;i<node.nodeList.size();i++){
-            evaluate(node.nodeList.get(i));
+        //先检查操作符，如果是define则跳过list里的下一个
+        String op = node.nodeList.get(0).val;
+        if(op.equals("define")){
+            for (int i = 2; i < node.nodeList.size(); i++) {
+                evaluate(node.nodeList.get(i));
+            }
+        }
+        else{
+            for(int i=1;i<node.nodeList.size();i++){
+                evaluate(node.nodeList.get(i));
+            }
         }
 
         //conquer
-        // String varPattern="^[a-zA-Z]+$";
-        // String numPattern="^[0-9]+$";
         switch (node.nodeList.get(0).val){ //get(0) is operator, the rest are operands
             case "+":
                 long val=0;
@@ -76,24 +83,43 @@ public class Main {
                 node.val=String.valueOf(val);
                 break;
             case "-":
-                long val1=Integer.parseInt(node.nodeList.get(1).val);
-                for(int i=2;i<node.nodeList.size();i++){
-                    val1=val1-Integer.parseInt(node.nodeList.get(i).val);
+                long val1=0;
+                String operandInit = getOperand(node, 1);
+                val1 = Long.parseLong(operandInit);
+                for (int i = 2; i < node.nodeList.size(); i++) {
+                    String operand = getOperand(node, i);
+                    if (operand != null) {
+                        val1 -= Long.parseLong(operand);
+                    } else {
+                        val1 -= 0;
+                    }
                 }
                 node.val=String.valueOf(val1);
                 break;
 
             case "*":
                 long val2=1;
-                for(int i=1;i<node.nodeList.size();i++){
-                    val2=val2*Integer.parseInt(node.nodeList.get(i).val);
+                for (int i = 1; i < node.nodeList.size(); i++) {
+                    String operand = getOperand(node, i);
+                    if (operand != null) {
+                        val2 *= Long.parseLong(operand);
+                    } else {
+                        val2 *= 1;
+                    }
                 }
                 node.val=String.valueOf(val2);
                 break;
             case "/":
-                long val3 = Integer.parseInt(node.nodeList.get(1).val);
-                for(int i=2;i<node.nodeList.size();i++){
-                    val3=val3/Integer.parseInt(node.nodeList.get(i).val);
+                long val3 = 0;
+                String operandInit1 = getOperand(node, 1);
+                val1 = Long.parseLong(operandInit1);
+                for (int i = 2; i < node.nodeList.size(); i++) {
+                    String operand = getOperand(node, i);
+                    if (operand != null) {
+                        val1 /= Long.parseLong(operand);
+                    } else {
+                        val1 /= 1;
+                    }
                 }
                 node.val=String.valueOf(val3);
                 break;
@@ -108,10 +134,31 @@ public class Main {
                 else{
                     node.env.map.put(key, "null value");
                 }
+
+                //定义函数 (define (mul x y) (* x y))   (mul 1 3)
+                //list[1]是参数列表，不会被evaluate
+                //list[2:]是函数体，已经evaluate过
+                treeNode functionDef=node.nodeList.get(1);
+                //list[1]的儿子：[0]函数名 [1:]参数列表
+                Function function=new Function();
+                //添加参数列表
+                for (int i = 1; i < functionDef.nodeList.size(); i++) {
+                    function.args.add(functionDef.nodeList.get(i).val);
+                }
+                //添加函数名
+                
                 break;
             case "lambda":
-                
-           
+                break;
+
+            
+            default: 
+                //非关键字时（第一个参数为用户定义）
+                //1. 用户调用函数 
+                //2. 用户声明函数
+                //如果环境中找不到该函数，则认为用户在声明
+                String funName = node.nodeList.get(0).val;
+
 
         }
 
@@ -137,14 +184,8 @@ public class Main {
         return null; 
     }
 
-    static Object evalFunc(Function function, List args){
-        Environment env=new Environment();
-        for(int i=0;i<args.size();i++){
-            env.map.put(String.valueOf(i), (String) args.get(i));
-        }
-        env.father=function.father;
-        evaluate(function.tree);
-        return function.tree.val;
+    static boolean findFunction(String name){
+        return false;
     }
 
 }

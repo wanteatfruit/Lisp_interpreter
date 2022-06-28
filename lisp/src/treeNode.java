@@ -4,9 +4,7 @@ import java.util.List;
 
 public class treeNode{
     List<treeNode> nodeList;
-
     String val;
-
     Environment env;
 
     public treeNode(String val){
