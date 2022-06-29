@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -37,6 +38,7 @@ public class Main {
             evaluate(curArg);
             if(curArg.nodeList.get(0).val.equals("define")){
                 root.env.map.putAll(root.nodeList.get(i).env.map);
+                root.env.funcMap.putAll(root.nodeList.get(i).env.funcMap);
             }
         }
 
@@ -54,12 +56,12 @@ public class Main {
             return ;
         }
         //divide
-        //先检查操作符，如果是define则跳过list里的下一个
+        //先检查操作符，如果是define则跳过不evaluate
         String op = node.nodeList.get(0).val;
         if(op.equals("define")){
-            for (int i = 2; i < node.nodeList.size(); i++) {
-                evaluate(node.nodeList.get(i));
-            }
+            // for (int i = 2; i < node.nodeList.size(); i++) {
+            //     evaluate(node.nodeList.get(i));
+            // }
         }
         else{
             for(int i=1;i<node.nodeList.size();i++){
@@ -137,27 +139,33 @@ public class Main {
 
                 //定义函数 (define (mul x y) (* x y))   (mul 1 3)
                 //list[1]是参数列表，不会被evaluate
-                //list[2:]是函数体，已经evaluate过
+                //list[2:]是函数体，只建树但不evaluate?
                 treeNode functionDef=node.nodeList.get(1);
                 //list[1]的儿子：[0]函数名 [1:]参数列表
                 Function function=new Function();
-                //添加参数列表
+                String funcName = functionDef.nodeList.get(0).val;
+                //添加参数列表给函数
                 for (int i = 1; i < functionDef.nodeList.size(); i++) {
                     function.args.add(functionDef.nodeList.get(i).val);
                 }
-                //添加函数名
-                
+                function.root=node.nodeList.get(2); //添加函数体给函数
+                function.father = node.env; //添加父环境给函数
+                node.env.funcMap.put(funcName, function); //给环境添加函数
+                /////////////函数自己的环境存在root里///////////////
                 break;
             case "lambda":
                 break;
 
             
             default: 
-                //非关键字时（第一个参数为用户定义）
-                //1. 用户调用函数 
-                //2. 用户声明函数
-                //如果环境中找不到该函数，则认为用户在声明
+                //非关键字时（第一个参数为用户定义）调用函数
+                //另外的为参数
                 String funName = node.nodeList.get(0).val;
+                List<String> args=new ArrayList<>();
+                for (int i = 1; i < node.nodeList.size(); i++) {
+                    args.add(node.nodeList.get(i).val);    
+                }
+                evaluateFunction(funName, args, node);
 
 
         }
@@ -184,8 +192,19 @@ public class Main {
         return null; 
     }
 
-    static boolean findFunction(String name){
-        return false;
+    static void evaluateFunction(String name, List<String> args, treeNode caller){
+        //从环境对应函数名拿到函数体的表达式树
+        //代入参数evaluate函数体
+        Function function = caller.env.funcMap.get(name);
+        treeNode root = function.root;
+        List<String> formalArg = function.args;
+        for (int i = 0; i < args.size(); i++) {
+            String actualArg = args.get(i);
+            root.env.map.put(formalArg.get(i), actualArg);
+        }
+        evaluate(root);
+        caller.val=root.val;
+    
     }
 
 }
