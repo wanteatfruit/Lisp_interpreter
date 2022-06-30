@@ -3,6 +3,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    static String varPattern = "^[a-zA-Z0-9]+$";
+    static String numPattern = "^[0-9]+$";
     public static void main(String[] args) {
         
         Scanner sc =new Scanner(System.in);
@@ -127,31 +129,36 @@ public class Main {
                 break;
             
             case "define": 
-                //定义变量
+                int type; //0为定义变量，1为定义函数
+                
                 String key=node.nodeList.get(1).val; //variable name(key)
-                String val4=getOperand(node, 2);//varibale value
-                if(val4!=null){
+                String val4=getOperand(node, 2);//value
+                if(val4!=null){ //如果搜索到的val4为数字，则认为是定义变量
                     node.env.map.put(key,val4);
+                    type = 0;
                 }
                 else{
-                    node.env.map.put(key, "null value");
+                    node.env.map.put(key, "user-defined function");
+                    type = 1;
                 }
 
-                //定义函数 (define (mul x y) (* x y))   (mul 1 3)
-                //list[1]是参数列表，不会被evaluate
-                //list[2:]是函数体，只建树但不evaluate?
-                treeNode functionDef=node.nodeList.get(1);
-                //list[1]的儿子：[0]函数名 [1:]参数列表
-                Function function=new Function();
-                String funcName = functionDef.nodeList.get(0).val;
-                //添加参数列表给函数
-                for (int i = 1; i < functionDef.nodeList.size(); i++) {
-                    function.args.add(functionDef.nodeList.get(i).val);
+                if(type==1){
+                    //定义函数 (define (mul x y) (* x y))   (mul 1 3)
+                    //list[1]是参数列表，不会被evaluate
+                    //list[2:]是函数体，只建树但不evaluate?
+                    treeNode functionDef=node.nodeList.get(1);
+                    //list[1]的儿子：[0]函数名 [1:]参数列表
+                    Function function=new Function();
+                    String funcName = functionDef.nodeList.get(0).val;
+                    //添加参数列表给函数
+                    for (int i = 1; i < functionDef.nodeList.size(); i++) {
+                        function.args.add(functionDef.nodeList.get(i).val);
+                    }
+                    function.root=node.nodeList.get(2); //添加函数体给函数
+                    function.father = node.env; //添加父环境给函数
+                    node.env.funcMap.put(funcName, function); //给环境添加函数
+                    /////////////函数自己的环境存在root里///////////////
                 }
-                function.root=node.nodeList.get(2); //添加函数体给函数
-                function.father = node.env; //添加父环境给函数
-                node.env.funcMap.put(funcName, function); //给环境添加函数
-                /////////////函数自己的环境存在root里///////////////
                 break;
             case "lambda":
                 break;
@@ -174,8 +181,7 @@ public class Main {
     }
 
     static String getOperand(treeNode node, int i){
-        String varPattern = "^[a-zA-Z0-9]+$";
-        String numPattern = "^[0-9]+$";
+
         String operand = node.nodeList.get(i).val;
         if (operand.matches(numPattern)) {
             return node.nodeList.get(i).val;
@@ -200,11 +206,20 @@ public class Main {
         List<String> formalArg = function.args;
         for (int i = 0; i < args.size(); i++) {
             String actualArg = args.get(i);
+            if(actualArg.matches(varPattern)){
+                actualArg = getOperand(actualArg, caller.env);
+            }
             root.env.map.put(formalArg.get(i), actualArg);
         }
         evaluate(root);
-        caller.val=root.val;
+        caller.val=root.val;//返回值
     
+    }
+
+    //当函数的参数是变量时，用此方法替换成数字
+    static String getOperand(String actual, Environment env){
+        String op = env.getValue(actual, env);
+        return op;
     }
 
 }
