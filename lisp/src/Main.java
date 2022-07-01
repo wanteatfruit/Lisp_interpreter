@@ -134,14 +134,14 @@ public class Main {
                 if(node.nodeList.get(1).val.equals("")){
                     type=1;
                 }
-                else type =0;
-                
+                else {
+                    type =0;
+                }
                 if(type==0){
                     String key=node.nodeList.get(1).val; //variable name(key)
                     String val4=getOperand(node, 2);//value
                     node.env.map.put(key,val4);
                 }
-                
 
                 if(type==1){
                     //定义函数 (define (mul x y) (* x y))   (mul 1 3)
@@ -213,24 +213,19 @@ public class Main {
     static void evaluateFunction(String name, List<String> args, treeNode caller){
         //从环境对应函数名拿到函数体的表达式树
         //代入参数evaluate函数体
-        
-        Function function = caller.env.funcMap.get(name);
-        //function = caller.env.getFunction(name, caller.env);
-        treeNode root = function.root;
+        //Function function = caller.env.funcMap.get(name);
+        Function function = caller.env.getFunction(name, caller.env);
+        treeNode functionRoot = function.root;
         List<String> formalArg = function.args;
         for (int i = 0; i < args.size(); i++) {
             String actualArg = args.get(i);
             if(!actualArg.matches(numPattern)){
                 actualArg = getOperand(actualArg, caller.env);
             }
-            root.env.map.put(formalArg.get(i), actualArg);
+            functionRoot.env.map.put(formalArg.get(i), actualArg);
         }
-        evaluateFunction(function,caller); 
-        //caller.val=root.val;//返回值
-    }
-
-    static void evaluateFunction(Function function, treeNode caller){
-        treeNode functionRoot =  function.root;
+       
+        //从左到右eval函数中每条语句
         for (int i = 0; i < functionRoot.nodeList.size(); i++) {
             treeNode child = functionRoot.nodeList.get(i);
             evaluate(child);
@@ -242,7 +237,8 @@ public class Main {
                 functionRoot.val = child.val;
             }
         }
-        caller.val = functionRoot.val;
+        caller.val = functionRoot.val; //返回值
+        
     }
 
     //当函数的参数是变量时，用此方法替换成数字
@@ -251,6 +247,7 @@ public class Main {
         return op;
     }
 
+    //用bfs更新一遍每个节点的父环境
     static void updateFather(treeNode root){
         Queue<treeNode> nodes=new LinkedList<>();
         nodes.add(root);

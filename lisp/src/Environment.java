@@ -29,30 +29,20 @@ public class Environment {
             }
         }
         return result;
-        // if(env.map.containsKey(key)){
-        //     result = env.map.get(key);
-        //     return result;
-        // }
-        // else if(env.father==null){
-        //     return "Doesn't exist.";
-        // }
-        // else{
-        //     getValue(key,env.father,result);
-        // }
-        // return result;
-
     }
 
-    Function getFunction(String name, Environment env){
-        if(env.funcMap.containsKey(name)){
-            return env.funcMap.get(name);
+    Function getFunction(String key, Environment env){
+        Function result=null;
+        while(env!=null){
+            if(env.funcMap.containsKey(key)){
+                result = env.funcMap.get(key);
+                break;
+            }
+            else{
+                env = env.father;
+            }
         }
-        else if(env.father==null){
-            return null;
-        }
-        else{
-            getFunction(name, env.father);
-        }
-        return null;
+        return result;
+        
     }
 }
