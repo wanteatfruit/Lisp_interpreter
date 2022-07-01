@@ -37,39 +37,28 @@ public class ConstructTree {
             || s.charAt(i)=='*' || s.charAt(i)=='-' || s.charAt(i)=='/'){
                 strings[i]= String.valueOf(s.charAt(i));
             }
-            // //多字符操作符(define, lambda)等
-            // if(s.charAt(i)>='a' && s.charAt(i)<='z'){
-            //     StringBuilder stringBuilder=new StringBuilder();
-            //     stringBuilder.append(s.charAt(i));
-            //     while (s.charAt(i+1)>='a' && s.charAt(i+1)<='z'){
-            //         stringBuilder.append(s.charAt(i+1));
-            //         i++;
-            //     }
-            //     strings[i]=stringBuilder.toString();
-            // }
             //英文操作数或操作数
-            if(s.charAt(i)>='a' && s.charAt(i)<='z' || s.charAt(i) >= 'A' && s.charAt(i)<='Z'){
+            if(isValid(s.charAt(i))){
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(s.charAt(i));
-                while (s.charAt(i + 1) >= 'a' && s.charAt(i + 1) <= 'z') {
+                while (isValid(s.charAt(i+1))) {
                     stringBuilder.append(s.charAt(i + 1));
                     i++;
                 }
                 strings[i] = stringBuilder.toString();
             }
-            //数字操作数
-            if(s.charAt(i)>='0' && s.charAt(i)<='9'){
-                String num=String.valueOf(s.charAt(i));
-                while (s.charAt(i+1)>='0' && s.charAt(i+1)<='9'){
-                    num=num+s.charAt(i+1);
-                    i++;
-                }
-                strings[i]=num;
-            }
+            // //数字操作数
+            // if(s.charAt(i)>='0' && s.charAt(i)<='9'){
+            //     String num=String.valueOf(s.charAt(i));
+            //     while (s.charAt(i+1)>='0' && s.charAt(i+1)<='9'){
+            //         num=num+s.charAt(i+1);
+            //         i++;
+            //     }
+            //     strings[i]=num;
+            // }
         }
 
         //construct tree
-
         for(int i=0;i< strings.length;i++){
             if(strings[i]==null){
                 continue;
@@ -89,23 +78,29 @@ public class ConstructTree {
                 nodeStack.push(node);
             }
             //操作符
-            else if(strings[i].matches(wordOperator)||strings[i].matches(mathOperator)){
-                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
-            }
-            // if(strings[i].equals("+") || strings[i].equals("*") 
-            // || strings[i].equals("-") || strings[i].equals("/")||strings[i].equals(operator)){
+            // else if(strings[i].matches(wordOperator)||strings[i].matches(mathOperator)){
             //     nodeStack.peek().nodeList.add(new treeNode(strings[i]));
             // }
-            //操作数
-            else if(strings[i].matches(operand)){
-                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
-            }
+            // //操作数
+            // else if(strings[i].matches(operand)){
+            //     nodeStack.peek().nodeList.add(new treeNode(strings[i]));
+            // }
             else if(strings[i].equals(")")){
                 nodeStack.pop();
+            }
+            else{
+                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
             }
         }
         return root;
 
+    }
+
+    static boolean isValid(char c){
+        if(c>='a' && c<='z' || c >= 'A' && c<='Z' || c>='0' && c<='9'){
+            return true;
+        }
+        return false;
     }
 
 }

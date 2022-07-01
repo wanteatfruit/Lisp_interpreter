@@ -18,16 +18,29 @@ public class Environment {
 
 
     String getValue(String key,Environment env){
-        if(env.map.containsKey(key)){
-            return env.map.get(key);
+        String result="";
+        while(env!=null){
+            if(env.map.containsKey(key)){
+                result = env.map.get(key);
+                break;
+            }
+            else{
+                env = env.father;
+            }
         }
-        else if(env.father==null){
-            return "Doesn't exist.";
-        }
-        else{
-            getValue(key,env.father);
-        }
-        return null;
+        return result;
+        // if(env.map.containsKey(key)){
+        //     result = env.map.get(key);
+        //     return result;
+        // }
+        // else if(env.father==null){
+        //     return "Doesn't exist.";
+        // }
+        // else{
+        //     getValue(key,env.father,result);
+        // }
+        // return result;
+
     }
 
     Function getFunction(String name, Environment env){

@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
 
 public class Main {
@@ -59,11 +61,10 @@ public class Main {
         }
         //divide
         //先检查操作符，如果是define则跳过不evaluate
+        //如果是空，则认为是函数
         String op = node.nodeList.get(0).val;
-        if(op.equals("define")){
-            // for (int i = 2; i < node.nodeList.size(); i++) {
-            //     evaluate(node.nodeList.get(i));
-            // }
+        if(op.equals("define") && node.nodeList.get(1).val.equals("")){
+
         }
         else{
             for(int i=1;i<node.nodeList.size();i++){
@@ -130,34 +131,45 @@ public class Main {
             
             case "define": 
                 int type; //0为定义变量，1为定义函数
+                if(node.nodeList.get(1).val.equals("")){
+                    type=1;
+                }
+                else type =0;
                 
-                String key=node.nodeList.get(1).val; //variable name(key)
-                String val4=getOperand(node, 2);//value
-                if(val4!=null){ //如果搜索到的val4为数字，则认为是定义变量
+                if(type==0){
+                    String key=node.nodeList.get(1).val; //variable name(key)
+                    String val4=getOperand(node, 2);//value
                     node.env.map.put(key,val4);
-                    type = 0;
                 }
-                else{
-                    node.env.map.put(key, "user-defined function");
-                    type = 1;
-                }
+                
 
                 if(type==1){
                     //定义函数 (define (mul x y) (* x y))   (mul 1 3)
                     //list[1]是参数列表，不会被evaluate
-                    //list[2:]是函数体，只建树但不evaluate?
+                    //list[2:]是函数体
                     treeNode functionDef=node.nodeList.get(1);
+                    treeNode functionBody = node.nodeList.get(2);
                     //list[1]的儿子：[0]函数名 [1:]参数列表
                     Function function=new Function();
-                    String funcName = functionDef.nodeList.get(0).val;
+                    String functionName = functionDef.nodeList.get(0).val;
                     //添加参数列表给函数
                     for (int i = 1; i < functionDef.nodeList.size(); i++) {
                         function.args.add(functionDef.nodeList.get(i).val);
                     }
-                    function.root=node.nodeList.get(2); //添加函数体给函数
+                    /////////函数体建一个单独的root节点，这个节点存函数的环境////////////////
+                    //函数体为单条语句，给他新建一个root
+                    if(!functionBody.nodeList.get(0).val.equals("")){
+                        treeNode functionRoot = new treeNode(node);
+                        function.root = functionRoot;
+                        functionRoot.nodeList.add(functionBody);
+                    }
+                    else{
+                        function.root = functionBody; //添加函数体给函数
+                    }
                     function.father = node.env; //添加父环境给函数
-                    node.env.funcMap.put(funcName, function); //给环境添加函数
-                    /////////////函数自己的环境存在root里///////////////
+                    node.env.funcMap.put(functionName, function); //给环境添加函数
+                    function.root.env.father=node.env;
+                    updateFather(function.root);
                 }
                 break;
             case "lambda":
@@ -189,7 +201,7 @@ public class Main {
         else if (operand.matches(varPattern)) { // 如果为用户定义的变量
             ///// 变量不一定存在于当前的环境中，应当一级一级往上找
             String searchResult = node.env.getValue(operand, node.env);
-            if (searchResult.equals("Doesn't exist.")) {
+            if (searchResult.equals("")) {
                 System.out.println(searchResult);
             } else {
                 return searchResult;
@@ -201,25 +213,55 @@ public class Main {
     static void evaluateFunction(String name, List<String> args, treeNode caller){
         //从环境对应函数名拿到函数体的表达式树
         //代入参数evaluate函数体
+        
         Function function = caller.env.funcMap.get(name);
+        //function = caller.env.getFunction(name, caller.env);
         treeNode root = function.root;
         List<String> formalArg = function.args;
         for (int i = 0; i < args.size(); i++) {
             String actualArg = args.get(i);
-            if(actualArg.matches(varPattern)){
+            if(!actualArg.matches(numPattern)){
                 actualArg = getOperand(actualArg, caller.env);
             }
             root.env.map.put(formalArg.get(i), actualArg);
         }
-        evaluate(root);
-        caller.val=root.val;//返回值
-    
+        evaluateFunction(function,caller); 
+        //caller.val=root.val;//返回值
+    }
+
+    static void evaluateFunction(Function function, treeNode caller){
+        treeNode functionRoot =  function.root;
+        for (int i = 0; i < functionRoot.nodeList.size(); i++) {
+            treeNode child = functionRoot.nodeList.get(i);
+            evaluate(child);
+            if(child.nodeList.get(i).val.equals("define")){
+                functionRoot.env.map.putAll(child.env.map);
+                functionRoot.env.funcMap.putAll(child.env.funcMap);
+            }
+            else{
+                functionRoot.val = child.val;
+            }
+        }
+        caller.val = functionRoot.val;
     }
 
     //当函数的参数是变量时，用此方法替换成数字
     static String getOperand(String actual, Environment env){
         String op = env.getValue(actual, env);
         return op;
+    }
+
+    static void updateFather(treeNode root){
+        Queue<treeNode> nodes=new LinkedList<>();
+        nodes.add(root);
+        while(!nodes.isEmpty()){
+            root = nodes.poll();
+            for (int i = 0; i < root.nodeList.size(); i++) {
+                treeNode child = root.nodeList.get(i);
+                child.env.father = root.env;
+                nodes.add(child);    
+            }
+        }
     }
 
 }
