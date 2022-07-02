@@ -3,8 +3,9 @@
 
 
 **遇到嵌套函数时**
-(define (add x y) (define (mul x y) (+ x y)))
-(add 1 2)
-是在调用时再解析第二层 mul
-还是在定义时就已经把define完全拆开
+(define (add1 x) ((define tmp 1) (define (add) (+ tmp 1)) (add) (+ tmp x)))
+(add1 1)
+(add1 1)
+
+在add里的tmp值是不是和外面的不一样？
     

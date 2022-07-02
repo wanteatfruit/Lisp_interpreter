@@ -1,10 +1,5 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import java.util.Stack;
 public class ConstructTree {
 
     /*
@@ -24,9 +19,9 @@ public class ConstructTree {
        // nodeStack.push(root);
 
         //use regex expressions to match strings
-        String operand="^[A-Za-z0-9]+$";  
-        String mathOperator="^[+-/*//]*$";
-        String wordOperator="^(lambda|define)$";
+        // String operand="^[A-Za-z0-9]+$";  
+        // String mathOperator="^[+-/*//]*$";
+        // String wordOperator="^(lambda|define)$";
 
         //tokenizer
 
@@ -69,7 +64,7 @@ public class ConstructTree {
                 if(nodeStack.isEmpty()){
                     node=new treeNode();
                     root=node;
-                    node.env=outerEnv;
+                    node.env.father=outerEnv;
                 }
                 else{
                     node=new treeNode(nodeStack.peek());

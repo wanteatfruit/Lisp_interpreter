@@ -36,6 +36,7 @@ public class Main {
                 break;
             }
             treeNode curArg = ConstructTree.construct(args[i], root.env);
+            //curArg.env.father = root.env;
             //curArg.env.map.putAll(root.env.map);
             root.nodeList.add(curArg);
             //如果当前语句为define，则需要更新根环境，并将更新后的赋给下一条语句的运算
@@ -229,7 +230,7 @@ public class Main {
         for (int i = 0; i < functionRoot.nodeList.size(); i++) {
             treeNode child = functionRoot.nodeList.get(i);
             evaluate(child);
-            if(child.nodeList.get(i).val.equals("define")){
+            if(child.nodeList.get(0).val.equals("define")){
                 functionRoot.env.map.putAll(child.env.map);
                 functionRoot.env.funcMap.putAll(child.env.funcMap);
             }

@@ -7,7 +7,7 @@ public class Environment {
 
     public Environment(){
         //father=new Environment();
-        map=new HashMap();
+        map=new HashMap<String,String>();
         funcMap=new HashMap<>();
     }
 

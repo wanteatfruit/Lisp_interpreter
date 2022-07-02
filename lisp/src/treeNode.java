@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+
 import java.util.List;
 
 public class treeNode{
@@ -28,10 +28,11 @@ public class treeNode{
         else{
             val = "";
             nodeList = new ArrayList<>();
-            // env=father.env;
+            
             // 指向同一个环境还是深复制一个？
             env = new Environment();
-            env.map.putAll(father.env.map);
+            env.father=father.env;
+            //env.map.putAll(father.env.map);
         }
 
     }
