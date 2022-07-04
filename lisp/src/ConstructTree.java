@@ -2,29 +2,12 @@
 import java.util.Stack;
 public class ConstructTree {
 
-    /*
-     * list of operators/keywords:
-     *  + - * /
-     *  define
-     *  lambda
-     *  ()
-     *  
-     */
-
     public static treeNode construct(String s, Environment outerEnv){
         String [] strings=new String[s.length()];
         Stack<treeNode> nodeStack=new Stack<>();
         treeNode root=new treeNode();
 
-       // nodeStack.push(root);
-
-        //use regex expressions to match strings
-        // String operand="^[A-Za-z0-9]+$";  
-        // String mathOperator="^[+-/*//]*$";
-        // String wordOperator="^(lambda|define)$";
-
         //tokenizer
-
         for(int i=0;i<s.length();i++){
             
             //单字符操作符和括号
@@ -42,15 +25,6 @@ public class ConstructTree {
                 }
                 strings[i] = stringBuilder.toString();
             }
-            // //数字操作数
-            // if(s.charAt(i)>='0' && s.charAt(i)<='9'){
-            //     String num=String.valueOf(s.charAt(i));
-            //     while (s.charAt(i+1)>='0' && s.charAt(i+1)<='9'){
-            //         num=num+s.charAt(i+1);
-            //         i++;
-            //     }
-            //     strings[i]=num;
-            // }
         }
 
         //construct tree
@@ -72,16 +46,13 @@ public class ConstructTree {
                 }
                 nodeStack.push(node);
             }
-            //操作符
-            // else if(strings[i].matches(wordOperator)||strings[i].matches(mathOperator)){
-            //     nodeStack.peek().nodeList.add(new treeNode(strings[i]));
-            // }
-            // //操作数
-            // else if(strings[i].matches(operand)){
-            //     nodeStack.peek().nodeList.add(new treeNode(strings[i]));
-            // }
             else if(strings[i].equals(")")){
                 nodeStack.pop();
+            }
+            //提前判定lambda
+            else if(strings[i].equals("lambda")){
+                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
+                nodeStack.peek().val="lambda";
             }
             else{
                 nodeStack.peek().nodeList.add(new treeNode(strings[i]));

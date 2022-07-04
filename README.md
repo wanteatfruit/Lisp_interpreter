@@ -8,4 +8,8 @@
 (add1 1)
 
 在add里的tmp值是不是和外面的不一样？
-    
+
+   ((lambda (x y) (+ x y)) 1 2)
+
+   先提前检测lambda，如果检测到，就提前记录下它后面的n个操作数 (可以修改建树？)
+(define identity (lambda (x) x))  

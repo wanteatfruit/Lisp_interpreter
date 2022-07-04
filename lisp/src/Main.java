@@ -45,15 +45,16 @@ public class Main {
                 root.env.map.putAll(root.nodeList.get(i).env.map);
                 root.env.funcMap.putAll(root.nodeList.get(i).env.funcMap);
             }
+            if(!curArg.val.equals("")){
+                System.out.println(curArg.val);
+            }
         }
 
         //print
-        for (int i = 0; i < root.nodeList.size(); i++) {
-            treeNode child=root.nodeList.get(i);
-            if(!child.val.equals("")){
-                System.out.println(child.val);
-            }
-        }
+        // for (int i = 0; i < root.nodeList.size(); i++) {
+        //     treeNode child=root.nodeList.get(i);
+
+        // }
     }
 
     static void evaluate(treeNode node){
@@ -62,13 +63,35 @@ public class Main {
         }
         //divide
         //先检查操作符，如果是define则跳过不evaluate
-        //如果是空，则认为是函数
+        //如果是空，则认为是函数or lambda
         String op = node.nodeList.get(0).val;
         if(op.equals("define") && node.nodeList.get(1).val.equals("")){
-
+            //定义函数
+        }
+        else if(op.equals("lambda") && node.nodeList.get(1).val.equals("")){
+            //知道lambda是包在括号外面的，可以提前拿到参数列表传给list[0]，之后evaluate进入list[0]
+            List<String> lambdaList = new ArrayList<>();
+            
+            int argsIndx = 1;
+            while(node.nodeList.get(argsIndx).val.matches(numPattern)){
+                lambdaList.add(node.nodeList.get(argsIndx).val);
+                argsIndx++;
+            }
+            evaluateLambda(node.nodeList.get(0), lambdaList);
         }
         else{
             for(int i=1;i<node.nodeList.size();i++){
+                if(node.nodeList.get(i).val.equals("lambda")){
+                    //evaluateLambda(lambda, args);
+                    List<String> lambdList = new ArrayList<>();
+                    int argsIndx = i+1;
+                    while(node.nodeList.get(argsIndx).val.matches(numPattern)){
+                        lambdList.add(node.nodeList.get(argsIndx).val);
+                        argsIndx++;
+                        //i++;
+                    }
+                    evaluateLambda(node.nodeList.get(i), lambdList);
+                }
                 evaluate(node.nodeList.get(i));
             }
         }
@@ -174,6 +197,36 @@ public class Main {
                 }
                 break;
             case "lambda":
+            ////可以把lambda看成一个运算符，接受下n个参数（和定义对应）
+            ////区别是环境里找不到它
+            ////先在外层获取操作数
+                
+                Function lambda=new Function();
+                List<String> lambdaArgs = new ArrayList<>();
+                for (int i = 1; i < node.nodeList.size(); i++) {
+                    
+                }
+                treeNode lambdaArgsNode = node.nodeList.get(1);
+                for (int i = 0; i < lambdaArgsNode.nodeList.size(); i++) {
+                    lambdaArgs.add(lambdaArgsNode.nodeList.get(i).val);
+                }
+                lambda.args = lambdaArgs;
+                treeNode lambdaBody = node.nodeList.get(2);
+                if(!lambdaBody.nodeList.get(0).val.equals("")){
+                    treeNode lambdaRoot = new treeNode(node);
+                    lambda.root = lambdaRoot;
+                    lambdaRoot.nodeList.add(lambdaBody);
+                }
+                else{
+                    lambda.root = lambdaBody; 
+                }
+
+                //此时环境中无法找到lambda这个函数
+                //对紧跟在自己后面的操作数进行lambdaBody中的操作
+                ////////如何找到操作数？//////
+
+
+
                 break;
 
             
@@ -242,11 +295,18 @@ public class Main {
         
     }
 
+    ////在这里evaluate lambda expression
+    static void evaluateLambda(treeNode lambda, List<String> args){
+
+    }
+
     //当函数的参数是变量时，用此方法替换成数字
     static String getOperand(String actual, Environment env){
         String op = env.getValue(actual, env);
         return op;
     }
+
+    
 
     //用bfs更新一遍每个节点的父环境
     static void updateFather(treeNode root){
