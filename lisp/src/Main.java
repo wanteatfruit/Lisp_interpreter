@@ -68,31 +68,38 @@ public class Main {
         if(op.equals("define") && node.nodeList.get(1).val.equals("")){
             //定义函数
         }
-        else if(op.equals("lambda") && node.nodeList.get(1).val.equals("")){
+        //lambda并且未evaluate过
+        else if(op.equals("lambda") && node.nodeList.get(2).val.equals("")){
             //知道lambda是包在括号外面的，可以提前拿到参数列表传给list[0]，之后evaluate进入list[0]
-            List<String> lambdaList = new ArrayList<>();
-            
-            int argsIndx = 1;
-            while(node.nodeList.get(argsIndx).val.matches(numPattern)){
-                lambdaList.add(node.nodeList.get(argsIndx).val);
-                argsIndx++;
+            List<treeNode> lambdaList = new ArrayList<>();
+            for (int i = 1; i < node.nodeList.size(); i++) {
+                lambdaList.add(node.nodeList.get(i));
             }
             evaluateLambda(node.nodeList.get(0), lambdaList);
+            evaluate(node.nodeList.get(0));
+            
+
+        }
+        //lambda并且evaluate过
+        else if(op.equals("lambda") && !node.nodeList.get(2).val.equals("")){
+
         }
         else{
             for(int i=1;i<node.nodeList.size();i++){
+                int lambdaArgsCnt = 0;
                 if(node.nodeList.get(i).val.equals("lambda")){
                     //evaluateLambda(lambda, args);
-                    List<String> lambdList = new ArrayList<>();
-                    int argsIndx = i+1;
-                    while(node.nodeList.get(argsIndx).val.matches(numPattern)){
-                        lambdList.add(node.nodeList.get(argsIndx).val);
-                        argsIndx++;
-                        //i++;
+                    List<treeNode> lambdList = new ArrayList<>();
+                    for (int j = i+1; j < node.nodeList.size(); j++) {
+                        lambdList.add(node.nodeList.get(j));
                     }
-                    evaluateLambda(node.nodeList.get(i), lambdList);
+                    lambdaArgsCnt = evaluateLambda(node.nodeList.get(i), lambdList);
                 }
+                //会导致重复eval
+                //需跳过
                 evaluate(node.nodeList.get(i));
+                i += lambdaArgsCnt;
+                
             }
         }
 
@@ -101,13 +108,15 @@ public class Main {
             case "+":
                 long val=0;
                 for(int i=1;i<node.nodeList.size();i++){
+                    int skipCnt = skip(node, i);
                     String operand=getOperand(node, i);                    
                     if(operand!=null){
                         val += Long.parseLong(operand);
                     }
                     else{
                         val += 0;
-                    }
+                    } 
+                    i+=skipCnt;
                 }
                 node.val=String.valueOf(val);
                 break;
@@ -154,19 +163,21 @@ public class Main {
                 break;
             
             case "define": 
-                int type; //0为定义变量，1为定义函数
+                int type; //0为定义变量，1为定义函数,2为lambda
                 if(node.nodeList.get(1).val.equals("")){
                     type=1;
                 }
-                else {
-                    type =0;
+                else if (node.nodeList.get(2).val.equals("lambda")){
+                    type = 2;
+                }
+                else{
+                    type = 0;
                 }
                 if(type==0){
                     String key=node.nodeList.get(1).val; //variable name(key)
                     String val4=getOperand(node, 2);//value
                     node.env.map.put(key,val4);
                 }
-
                 if(type==1){
                     //定义函数 (define (mul x y) (* x y))   (mul 1 3)
                     //list[1]是参数列表，不会被evaluate
@@ -195,38 +206,15 @@ public class Main {
                     function.root.env.father=node.env;
                     updateFather(function.root);
                 }
+                if(type==2){
+                    String key = node.nodeList.get(1).val; // variable name(key)
+
+                }
                 break;
             case "lambda":
-            ////可以把lambda看成一个运算符，接受下n个参数（和定义对应）
-            ////区别是环境里找不到它
-            ////先在外层获取操作数
-                
-                Function lambda=new Function();
-                List<String> lambdaArgs = new ArrayList<>();
-                for (int i = 1; i < node.nodeList.size(); i++) {
-                    
-                }
-                treeNode lambdaArgsNode = node.nodeList.get(1);
-                for (int i = 0; i < lambdaArgsNode.nodeList.size(); i++) {
-                    lambdaArgs.add(lambdaArgsNode.nodeList.get(i).val);
-                }
-                lambda.args = lambdaArgs;
-                treeNode lambdaBody = node.nodeList.get(2);
-                if(!lambdaBody.nodeList.get(0).val.equals("")){
-                    treeNode lambdaRoot = new treeNode(node);
-                    lambda.root = lambdaRoot;
-                    lambdaRoot.nodeList.add(lambdaBody);
-                }
-                else{
-                    lambda.root = lambdaBody; 
-                }
+            //已经运算过的值
 
-                //此时环境中无法找到lambda这个函数
-                //对紧跟在自己后面的操作数进行lambdaBody中的操作
-                ////////如何找到操作数？//////
-
-
-
+                node.val = node.nodeList.get(2).val;
                 break;
 
             
@@ -296,8 +284,44 @@ public class Main {
     }
 
     ////在这里evaluate lambda expression
-    static void evaluateLambda(treeNode lambda, List<String> args){
+    ////返回lambda参数个数
+    static int evaluateLambda(treeNode lambdaNode, List<treeNode> actualArgs){
+        Function lambda = new Function();
+        List<String> lambdaArgs = new ArrayList<>();
 
+        treeNode lambdaArgsNode = lambdaNode.nodeList.get(1);
+        for (int i = 0; i < lambdaArgsNode.nodeList.size(); i++) {
+            lambdaArgs.add(lambdaArgsNode.nodeList.get(i).val);
+        }
+        lambda.args = lambdaArgs;
+        treeNode lambdaBody = lambdaNode.nodeList.get(2);
+        if (!lambdaBody.nodeList.get(0).val.equals("")) {
+            treeNode lambdaRoot = new treeNode(lambdaNode);
+            lambda.root = lambdaRoot;
+            lambdaRoot.nodeList.add(lambdaBody);
+        } else {
+            lambda.root = lambdaBody;
+        }
+
+        //代入参数
+        for (int i = 0; i < lambdaArgs.size(); i++) {
+            evaluate(actualArgs.get(i));
+            lambdaBody.env.map.put(lambdaArgs.get(i), actualArgs.get(i).val);
+        }
+        //求值
+        evaluate(lambdaBody);
+
+        return lambdaArgs.size();
+    }
+
+    static int skip(treeNode node, int i){
+        if(node.nodeList.get(i).nodeList.size()==0){
+            return 0;
+        }
+        else if(node.nodeList.get(i).nodeList.get(0).val.equals("lambda")){
+            return node.nodeList.get(i).nodeList.get(1).nodeList.size();
+        }
+        else return 0;
     }
 
     //当函数的参数是变量时，用此方法替换成数字
