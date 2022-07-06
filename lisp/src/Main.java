@@ -73,7 +73,9 @@ public class Main {
 
         }
         //lambda并且未evaluate过
-        else if(op.equals("lambda") && node.nodeList.get(2).val.equals("")){
+        //从lambda外的节点看
+        else if(op.equals("lambda") && node.nodeList.get(0).nodeList.size()!=0 
+                && node.nodeList.get(0).nodeList.get(2).val.equals("")){
             //知道lambda是包在括号外面的，可以提前拿到参数列表传给list[0]，之后evaluate进入list[0]
             List<treeNode> lambdaList = new ArrayList<>();
             for (int i = 1; i < node.nodeList.size(); i++) {
@@ -85,8 +87,12 @@ public class Main {
 
         }
         //lambda并且evaluate过
-        else if(op.equals("lambda") && !node.nodeList.get(2).val.equals("")){
-
+        //进入了lambda节点
+        else if(node.val.equals("lambda")
+                && !node.nodeList.get(2).val.equals("")){
+            //赋返回值，并return
+            //node.val = node.nodeList.get(2).val;
+            return;
         }
         else{
             for(int i=1;i<node.nodeList.size();i++){
@@ -108,7 +114,7 @@ public class Main {
         }
 
         //conquer
-        switch (node.nodeList.get(0).val){ //get(0) is operator, the rest are operands
+        switch (op){ //get(0) is operator, the rest are operands
             case "+":
                 long val=0;
                 for(int i=1;i<node.nodeList.size();i++){
@@ -242,7 +248,7 @@ public class Main {
             case "lambda":
             //已经运算过的值
 
-                node.val = node.nodeList.get(2).val;
+                node.val = node.nodeList.get(0).nodeList.get(2).val;
                 break;
 
             
@@ -336,7 +342,20 @@ public class Main {
             evaluate(actualArgs.get(i));
             lambdaBody.env.map.put(lambdaArgs.get(i), actualArgs.get(i).val);
         }
+    
         //求值
+        // 从左到右eval函数中每条语句
+        for (int i = 0; i < lambda.root.nodeList.size(); i++) {
+            treeNode child = lambda.root.nodeList.get(i);
+            evaluate(child);
+            if (child.nodeList.get(0).val.equals("define")) {
+                lambda.root.env.map.putAll(child.env.map);
+                lambda.root.env.funcMap.putAll(child.env.funcMap);
+            } else {
+                lambda.root.val = child.val;
+            }
+        }
+
         evaluate(lambdaBody);
 
         return lambdaArgs.size();

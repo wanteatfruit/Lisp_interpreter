@@ -51,7 +51,7 @@ public class ConstructTree {
             }
             //提前判定lambda
             else if(strings[i].equals("lambda")){
-                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
+                nodeStack.peek().nodeList.add(new treeNode(""));
                 nodeStack.peek().val="lambda";
             }
             else{
