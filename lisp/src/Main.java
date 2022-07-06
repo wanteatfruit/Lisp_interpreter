@@ -68,6 +68,10 @@ public class Main {
         if(op.equals("define") && node.nodeList.get(1).val.equals("")){
             //定义函数
         }
+        else if(op.equals("define") && node.nodeList.get(2).val.equals("lambda")){
+            //把lambda看作变量
+
+        }
         //lambda并且未evaluate过
         else if(op.equals("lambda") && node.nodeList.get(2).val.equals("")){
             //知道lambda是包在括号外面的，可以提前拿到参数列表传给list[0]，之后evaluate进入list[0]
@@ -178,6 +182,33 @@ public class Main {
                     String val4=getOperand(node, 2);//value
                     node.env.map.put(key,val4);
                 }
+                if (type == 2) {
+                    // 转换成define普通函数的语句
+                    // (define plus4 (lambda (x) (+ x 4))) => (define (plus4 x) (+ x 4))
+                    //函数名：list[1]
+                    //lambda表达式: list[2]
+                    //参数列表：lambda.list[1]
+                    //函数体：lambda.list[2]
+                    String functionName = node.nodeList.get(1).val; 
+                    treeNode lambdaFunction = node.nodeList.get(2);
+                    treeNode lambdaArgument = lambdaFunction.nodeList.get(1);
+                    treeNode lambdaBody = lambdaFunction.nodeList.get(2);
+                    Function function = new Function();
+                    for (int i = 0; i < lambdaArgument.nodeList.size(); i++) {
+                        function.args.add(lambdaArgument.nodeList.get(i).val);
+                    }
+                    if (!lambdaBody.nodeList.get(0).val.equals("")) {
+                        treeNode functionRoot = new treeNode(node);
+                        function.root = functionRoot;
+                        functionRoot.nodeList.add(lambdaBody);
+                    } else {
+                        function.root = lambdaBody; // 添加函数体给函数
+                    }
+                    function.father = node.env; // 添加父环境给函数
+                    node.env.funcMap.put(functionName, function); // 给环境添加函数
+                    function.root.env.father = node.env;
+                    updateFather(function.root);
+                }
                 if(type==1){
                     //定义函数 (define (mul x y) (* x y))   (mul 1 3)
                     //list[1]是参数列表，不会被evaluate
@@ -206,10 +237,7 @@ public class Main {
                     function.root.env.father=node.env;
                     updateFather(function.root);
                 }
-                if(type==2){
-                    String key = node.nodeList.get(1).val; // variable name(key)
 
-                }
                 break;
             case "lambda":
             //已经运算过的值
