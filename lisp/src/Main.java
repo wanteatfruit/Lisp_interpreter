@@ -82,16 +82,13 @@ public class Main {
                 lambdaList.add(node.nodeList.get(i));
             }
             evaluateLambda(node.nodeList.get(0), lambdaList);
-            evaluate(node.nodeList.get(0));
-            
-
+            //evaluate(node.nodeList.get(0));
         }
         //lambda并且evaluate过
         //进入了lambda节点
         else if(node.val.equals("lambda")
                 && !node.nodeList.get(2).val.equals("")){
-            //赋返回值，并return
-            //node.val = node.nodeList.get(2).val;
+            //直接return
             return;
         }
         else{
@@ -107,7 +104,7 @@ public class Main {
                 }
                 //会导致重复eval
                 //需跳过
-                evaluate(node.nodeList.get(i));
+                //evaluate(node.nodeList.get(i));
                 i += lambdaArgsCnt;
                 
             }
@@ -256,9 +253,9 @@ public class Main {
                 //非关键字时（第一个参数为用户定义）调用函数
                 //另外的为参数
                 String funName = node.nodeList.get(0).val;
-                List<String> args=new ArrayList<>();
+                List<treeNode> args=new ArrayList<>();
                 for (int i = 1; i < node.nodeList.size(); i++) {
-                    args.add(node.nodeList.get(i).val);    
+                    args.add(node.nodeList.get(i));    
                 }
                 evaluateFunction(funName, args, node);
 
@@ -286,7 +283,7 @@ public class Main {
         return null; 
     }
 
-    static void evaluateFunction(String name, List<String> args, treeNode caller){
+    static void evaluateFunction(String name, List<treeNode> args, treeNode caller){
         //从环境对应函数名拿到函数体的表达式树
         //代入参数evaluate函数体
         //Function function = caller.env.funcMap.get(name);
@@ -294,7 +291,8 @@ public class Main {
         treeNode functionRoot = function.root;
         List<String> formalArg = function.args;
         for (int i = 0; i < args.size(); i++) {
-            String actualArg = args.get(i);
+            evaluate(args.get(i));
+            String actualArg = args.get(i).val;
             if(!actualArg.matches(numPattern)){
                 actualArg = getOperand(actualArg, caller.env);
             }
@@ -323,6 +321,7 @@ public class Main {
         Function lambda = new Function();
         List<String> lambdaArgs = new ArrayList<>();
 
+        lambda.father = lambdaNode.env;
         treeNode lambdaArgsNode = lambdaNode.nodeList.get(1);
         for (int i = 0; i < lambdaArgsNode.nodeList.size(); i++) {
             lambdaArgs.add(lambdaArgsNode.nodeList.get(i).val);
@@ -336,11 +335,16 @@ public class Main {
         } else {
             lambda.root = lambdaBody;
         }
+        updateFather(lambda.root);
 
         //代入参数
         for (int i = 0; i < lambdaArgs.size(); i++) {
             evaluate(actualArgs.get(i));
-            lambdaBody.env.map.put(lambdaArgs.get(i), actualArgs.get(i).val);
+            String actualArg = actualArgs.get(i).val;
+            if (!actualArg.matches(numPattern)) {
+                actualArg = getOperand(actualArg, lambdaNode.env);
+            }
+            lambdaBody.env.map.put(lambdaArgs.get(i), actualArg);
         }
     
         //求值
