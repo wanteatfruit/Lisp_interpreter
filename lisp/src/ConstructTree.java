@@ -12,7 +12,8 @@ public class ConstructTree {
             
             //单字符操作符和括号
             if(s.charAt(i)=='(' || s.charAt(i)==')' || s.charAt(i)=='+' 
-            || s.charAt(i)=='*' || s.charAt(i)=='-' || s.charAt(i)=='/'){
+            || s.charAt(i)=='*' || s.charAt(i)=='-' || s.charAt(i)=='/'
+            || s.charAt(i)=='<' || s.charAt(i) == '>' || s.charAt(i) == '='){
                 strings[i]= String.valueOf(s.charAt(i));
             }
             //英文操作数或操作数

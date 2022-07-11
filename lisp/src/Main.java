@@ -49,12 +49,6 @@ public class Main {
                 System.out.println(curArg.val);
             }
         }
-
-        //print
-        // for (int i = 0; i < root.nodeList.size(); i++) {
-        //     treeNode child=root.nodeList.get(i);
-
-        // }
     }
 
     static void evaluate(treeNode node){
@@ -101,6 +95,9 @@ public class Main {
                         lambdList.add(node.nodeList.get(j));
                     }
                     lambdaArgsCnt = evaluateLambda(node.nodeList.get(i), lambdList);
+                }
+                else{
+                    evaluate(node.nodeList.get(i));
                 }
                 //会导致重复eval
                 //需跳过
@@ -157,17 +154,116 @@ public class Main {
             case "/":
                 long val3 = 0;
                 String operandInit1 = getOperand(node, 1);
-                val1 = Long.parseLong(operandInit1);
+                val3 = Long.parseLong(operandInit1);
                 for (int i = 2; i < node.nodeList.size(); i++) {
                     String operand = getOperand(node, i);
                     if (operand != null) {
-                        val1 /= Long.parseLong(operand);
+                        val3 /= Long.parseLong(operand);
                     } else {
-                        val1 /= 1;
+                        val3 /= 1;
                     }
                 }
                 node.val=String.valueOf(val3);
                 break;
+            
+            case "=":
+                boolean equals = false;
+                String operandEqual1 = getOperand(node, 1);
+                String operandEqual2 = getOperand(node, 2);
+                if(Long.parseLong(operandEqual1)==Long.parseLong(operandEqual2)){
+                    equals = true;
+                }
+                node.val = String.valueOf(equals);
+                break;
+            case ">":
+                boolean bigger = false;
+                String operandBeq1 = getOperand(node, 1);
+                String operandBeq2 = getOperand(node, 2);
+                if(Long.parseLong(operandBeq1) > Long.parseLong(operandBeq2)){
+                    bigger = true;
+                }
+                node.val = String.valueOf(bigger);
+                break;
+            case "<":
+                boolean smaller = false;
+                String operandLeq1 = getOperand(node, 1);
+                String operandLeq2 = getOperand(node, 2);
+                if(Long.parseLong(operandLeq1) < Long.parseLong(operandLeq2)){
+                    smaller = true;
+                }
+                node.val = String.valueOf(smaller);
+                break;
+            case "and":
+                boolean andResult = true;
+                for (int i = 1; i < node.nodeList.size(); i++) {
+                    treeNode operandAnd = node.nodeList.get(i);
+                    if(operandAnd.val.equals("false")){
+                        andResult = false;
+                        break;
+                        //短路求值
+                    }
+                }
+                node.val = String.valueOf(andResult);
+                break;
+            
+            case "or":
+                boolean orResult = false;
+                for (int i = 1; i < node.nodeList.size(); i++) {
+                    treeNode operandOr = node.nodeList.get(i);
+                    if(operandOr.val.equals("true")){
+                        orResult = true;
+                        break;
+                        //短路求值
+                    }
+                }
+                node.val = String.valueOf(orResult);
+                break;
+
+            case "cond":
+            //没有实现惰性求值，会把每个括号中的值都先算一遍
+                /*(define (abs x) (cond (> x 0) (x) 
+                                        (= x 0) (0)
+                                        (else (+ x 1)))
+                                    */
+                int actionIndex = 2; //even number for action
+                //check each condition
+                for (int i = 1; i < node.nodeList.size(); i+=2) {
+                    treeNode conditionNode = node.nodeList.get(i);
+                    if(conditionNode.val.equals("true")){
+                        treeNode actionNode = node.nodeList.get(actionIndex);
+                        node.val = actionNode.val;
+                        break;
+                    }
+                    else if(conditionNode.val.equals("else")){
+                        node.val = conditionNode.val;
+                    }
+                    else{
+                        actionIndex+=2;
+                        continue;
+                    }
+                }
+                break;
+            case "if":
+                /*
+                 * (if (< x 0) (-x)
+                 *              x)
+                 */
+                treeNode conditionIf = node.nodeList.get(1);
+                treeNode consequentNode = node.nodeList.get(2);
+                treeNode alternateNode = node.nodeList.get(3);
+                if(conditionIf.val.equals("true")){
+                    node.val = consequentNode.val;
+                }
+                else {
+                    node.val = alternateNode.val;
+                }
+                break;
+
+            case "else":
+                // treeNode actionElse = node.nodeList.get(1);
+                // node.val = actionElse.val;
+                 break;
+
             
             case "define": 
                 int type; //0为定义变量，1为定义函数,2为lambda
@@ -258,11 +354,7 @@ public class Main {
                     args.add(node.nodeList.get(i));    
                 }
                 evaluateFunction(funName, args, node);
-
-
         }
-
-
     }
 
     static String getOperand(treeNode node, int i){
