@@ -6,7 +6,8 @@ import java.util.Scanner;
 
 public class Main {
     static String varPattern = "^[a-zA-Z0-9]+$";
-    static String numPattern = "^[0-9]+$";
+    static String negNumPattern = "/^[0-9 ()+-]+$/";
+    static String posNumPattern = "^[0-9]+$";
     public static void main(String[] args) {
         
         Scanner sc =new Scanner(System.in);
@@ -95,6 +96,7 @@ public class Main {
                         lambdList.add(node.nodeList.get(j));
                     }
                     lambdaArgsCnt = evaluateLambda(node.nodeList.get(i), lambdList);
+                    i += lambdaArgsCnt;
                 }
                 else{
                     evaluate(node.nodeList.get(i));
@@ -102,13 +104,18 @@ public class Main {
                 //会导致重复eval
                 //需跳过
                 //evaluate(node.nodeList.get(i));
-                i += lambdaArgsCnt;
+                
                 
             }
         }
 
         //conquer
-        switch (op){ //get(0) is operator, the rest are operands
+        switch (op) { //get(0) is operator, the rest are operands
+            case "":
+                for (int i = 0; i < node.nodeList.size(); i++) {
+                    evaluate(node.nodeList.get(i));
+                }
+                break;
             case "+":
                 long val=0;
                 for(int i=1;i<node.nodeList.size();i++){
@@ -221,26 +228,26 @@ public class Main {
 
             case "cond":
             //没有实现惰性求值，会把每个括号中的值都先算一遍
-                /*(define (abs x) (cond (> x 0) (x) 
-                                        (= x 0) (0)
+                /*(define (abs x) (cond ((> x 0) (+ x 0)) 
+                                        ((= x 0) (+ 0 0))
                                         (else (+ x 1)))
                                     */
-                int actionIndex = 2; //even number for action
-                //check each condition
-                for (int i = 1; i < node.nodeList.size(); i+=2) {
-                    treeNode conditionNode = node.nodeList.get(i);
-                    if(conditionNode.val.equals("true")){
-                        treeNode actionNode = node.nodeList.get(actionIndex);
-                        node.val = actionNode.val;
+                
+                //check each pair
+                //每个子节点为一组 判断/操作
+                for (int i = 1; i < node.nodeList.size(); i+=1) {
+                    treeNode pair = node.nodeList.get(i);
+                    treeNode condition = pair.nodeList.get(0);
+                    
+                    if (condition.val.equals("true")) {
+                        treeNode consequence = pair.nodeList.get(1);
+                        node.val = consequence.val;
                         break;
                     }
-                    else if(conditionNode.val.equals("else")){
-                        node.val = conditionNode.val;
+                    else if (condition.val.equals("else")) {
+                        node.val = pair.nodeList.get(1).val;
                     }
-                    else{
-                        actionIndex+=2;
-                        continue;
-                    }
+                    
                 }
                 break;
             case "if":
@@ -348,19 +355,22 @@ public class Main {
             default: 
                 //非关键字时（第一个参数为用户定义）调用函数
                 //另外的为参数
+                //调用函数后应该初始化函数？
                 String funName = node.nodeList.get(0).val;
                 List<treeNode> args=new ArrayList<>();
                 for (int i = 1; i < node.nodeList.size(); i++) {
-                    args.add(node.nodeList.get(i));    
+                    args.add(node.nodeList.get(i));
                 }
-                evaluateFunction(funName, args, node);
+                Function function = node.env.getFunction(funName, node.env);
+                evaluateFunction(function, args, node);
+                resetFunction(function);
         }
     }
 
     static String getOperand(treeNode node, int i){
 
         String operand = node.nodeList.get(i).val;
-        if (operand.matches(numPattern)) {
+        if (operand.matches(posNumPattern) || operand.matches(negNumPattern)) {
             return node.nodeList.get(i).val;
         }
         else if (operand.matches(varPattern)) { // 如果为用户定义的变量
@@ -375,17 +385,15 @@ public class Main {
         return null; 
     }
 
-    static void evaluateFunction(String name, List<treeNode> args, treeNode caller){
+    static void evaluateFunction(Function function, List<treeNode> args, treeNode caller){
         //从环境对应函数名拿到函数体的表达式树
         //代入参数evaluate函数体
-        //Function function = caller.env.funcMap.get(name);
-        Function function = caller.env.getFunction(name, caller.env);
         treeNode functionRoot = function.root;
         List<String> formalArg = function.args;
         for (int i = 0; i < args.size(); i++) {
             evaluate(args.get(i));
             String actualArg = args.get(i).val;
-            if(!actualArg.matches(numPattern)){
+            if(!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)){
                 actualArg = getOperand(actualArg, caller.env);
             }
             functionRoot.env.map.put(formalArg.get(i), actualArg);
@@ -409,7 +417,7 @@ public class Main {
 
     ////在这里evaluate lambda expression
     ////返回lambda参数个数
-    static int evaluateLambda(treeNode lambdaNode, List<treeNode> actualArgs){
+    static int evaluateLambda(treeNode lambdaNode, List<treeNode> actualArgs) {
         Function lambda = new Function();
         List<String> lambdaArgs = new ArrayList<>();
 
@@ -433,12 +441,12 @@ public class Main {
         for (int i = 0; i < lambdaArgs.size(); i++) {
             evaluate(actualArgs.get(i));
             String actualArg = actualArgs.get(i).val;
-            if (!actualArg.matches(numPattern)) {
+            if (!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)) {
                 actualArg = getOperand(actualArg, lambdaNode.env);
             }
             lambdaBody.env.map.put(lambdaArgs.get(i), actualArg);
         }
-    
+
         //求值
         // 从左到右eval函数中每条语句
         for (int i = 0; i < lambda.root.nodeList.size(); i++) {
@@ -455,6 +463,25 @@ public class Main {
         evaluate(lambdaBody);
 
         return lambdaArgs.size();
+    }
+
+    //重置每个中间节点的val
+    static void resetFunction(Function function) {
+        treeNode root = function.root;
+        Queue<treeNode> queue = new LinkedList<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            treeNode cur = queue.poll();
+            if (cur.nodeList.size() == 0) {//叶子节点
+                continue;
+            }
+            else {
+                cur.val = "";
+            }
+            for (int i = 0; i < cur.nodeList.size(); i++) {
+                queue.add(cur.nodeList.get(i));
+            }
+        }
     }
 
     static int skip(treeNode node, int i){

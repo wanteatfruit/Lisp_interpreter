@@ -9,23 +9,37 @@ public class ConstructTree {
 
         //tokenizer
         for(int i=0;i<s.length();i++){
-            
-            //单字符操作符和括号
-            if(s.charAt(i)=='(' || s.charAt(i)==')' || s.charAt(i)=='+' 
-            || s.charAt(i)=='*' || s.charAt(i)=='-' || s.charAt(i)=='/'
-            || s.charAt(i)=='<' || s.charAt(i) == '>' || s.charAt(i) == '='){
-                strings[i]= String.valueOf(s.charAt(i));
-            }
-            //英文操作数或操作数
-            if(isValid(s.charAt(i))){
+
+            //处理负操作数
+            if (s.charAt(i) == '-' && isValid(s.charAt(i + 1))) {
+
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(s.charAt(i));
-                while (isValid(s.charAt(i+1))) {
+                while (isValid(s.charAt(i + 1))) {
+                    stringBuilder.append(s.charAt(i + 1));
+                    i++;
+                }
+                strings[i] = stringBuilder.toString();
+                
+            }
+            // 英文操作数或操作数
+            else if (isValid(s.charAt(i))) {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(s.charAt(i));
+                while (isValid(s.charAt(i + 1))) {
                     stringBuilder.append(s.charAt(i + 1));
                     i++;
                 }
                 strings[i] = stringBuilder.toString();
             }
+            //单字符操作符和括号
+            else if(s.charAt(i)=='(' || s.charAt(i)==')' || s.charAt(i)=='+' 
+            || s.charAt(i)=='*' || s.charAt(i)=='-' || s.charAt(i)=='/'
+            || s.charAt(i)=='<' || s.charAt(i) == '>' || s.charAt(i) == '='){
+                strings[i]= String.valueOf(s.charAt(i));
+            }
+            
+
         }
 
         //construct tree
