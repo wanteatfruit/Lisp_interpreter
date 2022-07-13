@@ -3,10 +3,12 @@ import java.util.HashMap;
 public class Environment {
     Environment father;
     HashMap<String,String> map;
+    HashMap<String,Function> funcMap;
 
     public Environment(){
         //father=new Environment();
-        map=new HashMap();
+        map=new HashMap<String,String>();
+        funcMap=new HashMap<>();
     }
 
     public Environment(Environment father,HashMap<String,String> map){
@@ -16,15 +18,31 @@ public class Environment {
 
 
     String getValue(String key,Environment env){
-        if(env.map.containsKey(key)){
-            return env.map.get(key);
+        String result="";
+        while(env!=null){
+            if(env.map.containsKey(key)){
+                result = env.map.get(key);
+                break;
+            }
+            else{
+                env = env.father;
+            }
         }
-        else if(env.father==null){
-            return "Doesn't exist.";
+        return result;
+    }
+
+    Function getFunction(String key, Environment env){
+        Function result=null;
+        while(env!=null){
+            if(env.funcMap.containsKey(key)){
+                result = env.funcMap.get(key);
+                break;
+            }
+            else{
+                env = env.father;
+            }
         }
-        else{
-            getValue(key,env.father);
-        }
-        return null;
+        return result;
+        
     }
 }
