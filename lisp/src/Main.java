@@ -362,18 +362,20 @@ public class Main {
                     args.add(node.nodeList.get(i));
                 }
                 Function function = node.env.getFunction(funName, node.env);
+                if (function.root.val.equals("lambda")) {//closure
+                    
+                }
                 evaluateFunction(function, args, node);
                 resetFunction(function);
         }
     }
 
-    static String getOperand(treeNode node, int i){
+    static String getOperand(treeNode node, int i) {
 
         String operand = node.nodeList.get(i).val;
         if (operand.matches(posNumPattern) || operand.matches(negNumPattern)) {
             return node.nodeList.get(i).val;
-        }
-        else if (operand.matches(varPattern)) { // 如果为用户定义的变量
+        } else if (operand.matches(varPattern)) { // 如果为用户定义的变量
             ///// 变量不一定存在于当前的环境中，应当一级一级往上找
             String searchResult = node.env.getValue(operand, node.env);
             if (searchResult.equals("")) {
@@ -382,10 +384,13 @@ public class Main {
                 return searchResult;
             }
         }
-        return null; 
+        return null;
     }
+    
+    
 
-    static void evaluateFunction(Function function, List<treeNode> args, treeNode caller){
+    static void evaluateFunction(Function function, List<treeNode> args, treeNode caller) {
+        
         //从环境对应函数名拿到函数体的表达式树
         //代入参数evaluate函数体
         treeNode functionRoot = function.root;
@@ -393,22 +398,36 @@ public class Main {
         for (int i = 0; i < args.size(); i++) {
             evaluate(args.get(i));
             String actualArg = args.get(i).val;
-            if(!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)){
+            if (!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)) {
                 actualArg = getOperand(actualArg, caller.env);
             }
             functionRoot.env.map.put(formalArg.get(i), actualArg);
         }
-       
-        //从左到右eval函数中每条语句
-        for (int i = 0; i < functionRoot.nodeList.size(); i++) {
-            treeNode child = functionRoot.nodeList.get(i);
-            evaluate(child);
-            if(child.nodeList.get(0).val.equals("define")){
-                functionRoot.env.map.putAll(child.env.map);
-                functionRoot.env.funcMap.putAll(child.env.funcMap);
+        
+        //calling closure
+        if (functionRoot.val.equals("lambda")) {
+            treeNode lambdaExprs = functionRoot.nodeList.get(2);
+            evaluate(lambdaExprs);
+            if (lambdaExprs.nodeList.get(0).val.equals("define")) {
+                functionRoot.env.map.putAll(lambdaExprs.env.map);
+                functionRoot.env.funcMap.putAll(lambdaExprs.env.funcMap);
             }
-            else{
-                functionRoot.val = child.val;
+            else {
+                functionRoot.val = lambdaExprs.val;
+            }
+        }
+        else {
+
+            //从左到右eval函数中每条语句
+            for (int i = 0; i < functionRoot.nodeList.size(); i++) {
+                treeNode child = functionRoot.nodeList.get(i);
+                evaluate(child);
+                if (child.nodeList.get(0).val.equals("define")) {
+                    functionRoot.env.map.putAll(child.env.map);
+                    functionRoot.env.funcMap.putAll(child.env.funcMap);
+                } else {
+                    functionRoot.val = child.val;
+                }
             }
         }
         caller.val = functionRoot.val; //返回值
