@@ -398,7 +398,7 @@ public class Main {
         for (int i = 0; i < args.size(); i++) {
             evaluate(args.get(i));
             String actualArg = args.get(i).val;
-            if (!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)) {
+            if (!actualArg.matches(posNumPattern) && !actualArg.matches(negNumPattern)) { //todo:can't recognize -1
                 actualArg = getOperand(actualArg, caller.env);
             }
             functionRoot.env.map.put(formalArg.get(i), actualArg);
