@@ -13,22 +13,43 @@ public class Main {
         Scanner sc =new Scanner(System.in);
         String[] input=new String[10000];
         int idx = 0;
+        treeNode r = new treeNode();//最外层环境节点
         while(true) {
             String s = sc.nextLine();
-            input[idx]=s;
-            idx++;
             if(s.equals("-1")){
                 break;
             }
-            if(s.equals("c")){
-                compile(input);
-                //re-init
-                idx=0;
-                input = new String[10000];
-            }
+            interpret(s, r);
+
+            // input[idx]=s;
+            // idx++;
+            // if(s.equals("-1")){
+            //     break;
+            // }
+            // if(s.equals("c")){
+            //     compile(input);
+            //     //re-init
+            //     idx=0;
+            //     input = new String[10000];
+            // }
         }
         sc.close();
     }
+    
+    static void interpret(String in, treeNode root){
+        treeNode curArg = ConstructTree.construct(in, root.env);
+        root.nodeList.add(curArg);
+        // 如果当前语句为define，则需要更新根环境，并将更新后的赋给下一条语句的运算
+        evaluate(curArg);
+        if (curArg.nodeList.get(0).val.equals("define")) {
+            root.env.map.putAll(curArg.env.map);
+            root.env.funcMap.putAll(curArg.env.funcMap);
+        }
+        if (!curArg.val.equals("")) {
+            System.out.println(curArg.val);
+        }
+    }
+
     static void compile(String[] args){
 
         treeNode root=new treeNode(); //最外层的环境节点
@@ -37,8 +58,6 @@ public class Main {
                 break;
             }
             treeNode curArg = ConstructTree.construct(args[i], root.env);
-            //curArg.env.father = root.env;
-            //curArg.env.map.putAll(root.env.map);
             root.nodeList.add(curArg);
             //如果当前语句为define，则需要更新根环境，并将更新后的赋给下一条语句的运算
             evaluate(curArg);
