@@ -57,10 +57,10 @@ public class Main {
         if(node.nodeList.size()==0){
             return ;
         }
-        //需要惰性求值
+        //惰性求值
         if(node.lazy==true){
             //create lazy eval object, select type
-            LazyEvaluation lazyObj = new LazyEvaluation(node,OperationType.IF);
+            LazyEvaluation lazyObj = new LazyEvaluation(node,OperationType.AND);
             lazyObj.evaluateLazy();
             return;
         }
