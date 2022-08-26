@@ -70,16 +70,22 @@ public class ConstructTree {
                 nodeStack.peek().val="lambda";
             }
             //判定是否惰性求值
-            else if(strings[i].equals("if")){
-                nodeStack.peek().nodeList.add(new treeNode("if"));
-                nodeStack.peek().lazy=true;
+            else if(strings[i].equals("if") || strings[i].equals("and") || strings[i].equals("or") ){
+                nodeStack.peek().nodeList.add(new treeNode(strings[i]));
+                setLazy(nodeStack.peek());
             }
+            
             else{
                 nodeStack.peek().nodeList.add(new treeNode(strings[i]));
             }
         }
         return root;
 
+    }
+
+    static void setLazy(treeNode node){
+        node.lazy=true; //root node
+        OperationType.setNodeType(node.nodeList.get(0).val, node); //set type from operator node
     }
 
     static boolean isValid(char c){

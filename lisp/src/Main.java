@@ -60,7 +60,7 @@ public class Main {
         //惰性求值
         if(node.lazy==true){
             //create lazy eval object, select type
-            LazyEvaluation lazyObj = new LazyEvaluation(node,OperationType.AND);
+            LazyEvaluation lazyObj = new LazyEvaluation(node);
             lazyObj.evaluateLazy();
             return;
         }

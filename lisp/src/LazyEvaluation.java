@@ -1,4 +1,3 @@
-import org.w3c.dom.Node;
 
 public class LazyEvaluation {
     treeNode root;
@@ -6,6 +5,7 @@ public class LazyEvaluation {
 
     public LazyEvaluation(treeNode root) {
         this.root = root;
+        OperationType.setLazyObjType(this.root.nodeList.get(0).val, this);
     }
 
     public LazyEvaluation(treeNode root, OperationType type) {
