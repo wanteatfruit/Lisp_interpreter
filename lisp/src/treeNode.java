@@ -6,11 +6,19 @@ public class treeNode{
     List<treeNode> nodeList;
     String val;
     Environment env;
+    boolean lazy = false;
 
     public treeNode(String val){
         this.val=val;
         nodeList=new ArrayList<>();
         env=new Environment();
+    }
+
+    public treeNode(String val, boolean lazy) {
+        this.val = val;
+        nodeList = new ArrayList<>();
+        env = new Environment();
+        this.lazy = lazy;
     }
 
     public treeNode(){

@@ -69,6 +69,11 @@ public class ConstructTree {
                 nodeStack.peek().nodeList.add(new treeNode(""));
                 nodeStack.peek().val="lambda";
             }
+            //判定是否惰性求值
+            else if(strings[i].equals("if")){
+                nodeStack.peek().nodeList.add(new treeNode("if"));
+                nodeStack.peek().lazy=true;
+            }
             else{
                 nodeStack.peek().nodeList.add(new treeNode(strings[i]));
             }

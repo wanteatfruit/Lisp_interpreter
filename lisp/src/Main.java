@@ -53,10 +53,17 @@ public class Main {
     }
 
     static void evaluate(treeNode node){
+        //根节点
         if(node.nodeList.size()==0){
             return ;
         }
-        //divide
+        //需要惰性求值
+        if(node.lazy==true){
+            //create lazy eval object, select type
+            LazyEvaluation lazyObj = new LazyEvaluation(node,OperationType.IF);
+            lazyObj.evaluateLazy();
+            return;
+        }
         //先检查操作符，如果是define则跳过不evaluate
         //如果是空，则认为是函数or lambda
         String op = node.nodeList.get(0).val;
@@ -109,7 +116,6 @@ public class Main {
             }
         }
 
-        //conquer
         switch (op) { //get(0) is operator, the rest are operands
             case "":
                 for (int i = 0; i < node.nodeList.size(); i++) {
