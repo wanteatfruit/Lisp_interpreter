@@ -1,4 +1,4 @@
-# lisp_intepreter
+# lisp_interpreter
 一个简单的Lisp语言Scheme方言解释器
 ## 已实现：
 - 整数四则运算、比较大小 `(+ 1 2 3) (> 1 0)`
